@@ -7,8 +7,8 @@ import (
 	"api/src/repositorios"
 	"api/src/respostas"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"errors"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,7 +17,7 @@ import (
 )
 
 func CriarUsuario(w http.ResponseWriter, r *http.Request) {
-	corpoRequest, erro := ioutil.ReadAll(r.Body)
+	corpoRequest, erro := io.ReadAll(r.Body)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
@@ -116,9 +116,12 @@ func AtualizarUsuario(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(usuarioIDNoToken)
+	if usuarioID != usuarioIDNoToken {
+		respostas.Erro(w, http.StatusForbidden, errors.New("Não é possível atualizar um usuário que não seja o seu"))
+		return
+	}
 
-	corpoRequisicao, erro := ioutil.ReadAll(r.Body)
+	corpoRequisicao, erro := io.ReadAll(r.Body)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
@@ -158,6 +161,17 @@ func DeletarUsuario(w http.ResponseWriter, r *http.Request) {
 	usuarioID, erro := strconv.ParseUint(parametros["usuarioID"], 10, 64)
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	usuarioIDNoToken, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnauthorized, erro)
+		return
+	}
+
+	if usuarioID != usuarioIDNoToken {
+		respostas.Erro(w, http.StatusForbidden, errors.New("Não é possível deletar um usuário que não seja o seu"))
 		return
 	}
 

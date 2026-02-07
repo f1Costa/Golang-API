@@ -13,7 +13,7 @@ func JSON(w http.ResponseWriter, statusCode int, dados interface{}) {
 
 	if dados != nil {
 		if erro := json.NewEncoder(w).Encode(dados); erro != nil {
-			log.Fatal(erro)
+			log.Println(erro)
 		}
 	}
 

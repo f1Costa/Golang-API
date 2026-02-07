@@ -8,12 +8,12 @@ import (
 	"api/src/respostas"
 	"api/src/seguranca"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	corpoRequisicao, erro := ioutil.ReadAll(r.Body)
+	corpoRequisicao, erro := io.ReadAll(r.Body)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
@@ -44,7 +44,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, _ := autenticacao.CriarToken(usuarioSalvoNoBanco.ID)
+	token, erro := autenticacao.CriarToken(usuarioSalvoNoBanco.ID)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
